@@ -38,6 +38,28 @@ def _create_progress(length=10, **kwargs):
     return progress
 
 
+
+def test_progressbar_show_pos_with_update_min_steps(runner, monkeypatch):
+    """Final show_pos reflects full length when update_min_steps does not divide length.
+
+    Regression for https://github.com/pallets/click/issues/3571
+    """
+
+    @click.command()
+    def cli():
+        with click.progressbar(
+            range(20),
+            show_pos=True,
+            update_min_steps=7,
+        ) as bar:
+            for _ in bar:
+                pass
+
+    monkeypatch.setattr(click._termui_impl, "isatty", lambda _: True)
+    output = runner.invoke(cli, []).output
+    assert "20/20" in output
+
+
 def test_progressbar_strip_regression(runner, monkeypatch):
     label = "    padded line"
 
