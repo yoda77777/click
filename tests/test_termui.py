@@ -1561,6 +1561,7 @@ def test_hide_input_value_never_leaks_when_err_true(runner):
     assert "leaky" not in result.stdout
     assert "leaky" not in result.stderr
 
+
 def test_confirm_strips_ansi_with_color_false(runner):
     """confirm() should strip ANSI when CliRunner sets color=False.
 
@@ -1588,5 +1589,3 @@ def test_prompt_strips_ansi_with_color_false(runner):
     assert result.exit_code == 0
     assert "\x1b[" not in result.output
     assert "Name: Ada" in result.output
-
-

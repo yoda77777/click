@@ -211,9 +211,7 @@ def prompt(
         value_proc = convert_type(type, default)
 
     prompt = _prepare_prompt_text(
-        _build_prompt(
-            text, prompt_suffix, show_default, default, show_choices, type
-        ),
+        _build_prompt(text, prompt_suffix, show_default, default, show_choices, type),
         err=err,
     )
 
