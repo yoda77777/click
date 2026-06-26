@@ -38,7 +38,6 @@ def _create_progress(length=10, **kwargs):
     return progress
 
 
-
 def test_progressbar_show_pos_with_update_min_steps(runner, monkeypatch):
     """Final show_pos reflects full length when update_min_steps does not divide length.
 
