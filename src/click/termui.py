@@ -115,6 +115,24 @@ def _format_default(default: t.Any) -> t.Any:
     return default
 
 
+def _prepare_prompt_text(text: str, err: bool = False) -> str:
+    """Strip ANSI from prompt text when colors are disabled for the stream.
+
+    ``input()`` writes the prompt directly, so unlike :func:`echo` it would
+    otherwise preserve escape codes even when ``color=False`` is set (for
+    example via :class:`click.testing.CliRunner`).
+    """
+    from ._compat import _default_text_stderr
+    from ._compat import _default_text_stdout
+    from ._compat import should_strip_ansi
+    from .globals import resolve_color_default
+
+    stream = _default_text_stderr() if err else _default_text_stdout()
+    if should_strip_ansi(stream, resolve_color_default(None)):
+        return strip_ansi(text)
+    return text
+
+
 def prompt(
     text: str,
     default: t.Any | None = None,
@@ -192,15 +210,21 @@ def prompt(
     if value_proc is None:
         value_proc = convert_type(type, default)
 
-    prompt = _build_prompt(
-        text, prompt_suffix, show_default, default, show_choices, type
+    prompt = _prepare_prompt_text(
+        _build_prompt(
+            text, prompt_suffix, show_default, default, show_choices, type
+        ),
+        err=err,
     )
 
     if confirmation_prompt:
         if confirmation_prompt is True:
             confirmation_prompt = _("Repeat for confirmation")
 
-        confirmation_prompt = _build_prompt(confirmation_prompt, prompt_suffix)
+        confirmation_prompt = _prepare_prompt_text(
+            _build_prompt(confirmation_prompt, prompt_suffix),
+            err=err,
+        )
 
     while True:
         while True:
@@ -260,11 +284,14 @@ def confirm(
     .. versionadded:: 4.0
         Added the ``err`` parameter.
     """
-    prompt = _build_prompt(
-        text,
-        prompt_suffix,
-        show_default,
-        "y/n" if default is None else ("Y/n" if default else "y/N"),
+    prompt = _prepare_prompt_text(
+        _build_prompt(
+            text,
+            prompt_suffix,
+            show_default,
+            "y/n" if default is None else ("Y/n" if default else "y/N"),
+        ),
+        err=err,
     )
 
     while True:
