@@ -1560,3 +1560,32 @@ def test_hide_input_value_never_leaks_when_err_true(runner):
     result = runner.invoke(cli, input="leaky\n", mix_stderr=False)
     assert "leaky" not in result.stdout
     assert "leaky" not in result.stderr
+
+
+def test_confirm_strips_ansi_with_color_false(runner):
+    """confirm() should strip ANSI when CliRunner sets color=False.
+
+    Regression for https://github.com/pallets/click/issues/3572
+    """
+
+    @click.command()
+    def cmd_confirm():
+        click.confirm(click.style("Hello World!", fg="green"), abort=True)
+
+    result = runner.invoke(cmd_confirm, input="Y", color=False)
+    assert result.exit_code == 0
+    assert result.output == "Hello World! [y/N]: Y\n"
+    assert "\x1b[" not in result.output
+
+
+def test_prompt_strips_ansi_with_color_false(runner):
+    """prompt() should strip ANSI when CliRunner sets color=False."""
+
+    @click.command()
+    def cmd_prompt():
+        click.echo(click.prompt(click.style("Name", fg="green")))
+
+    result = runner.invoke(cmd_prompt, input="Ada", color=False)
+    assert result.exit_code == 0
+    assert "\x1b[" not in result.output
+    assert "Name: Ada" in result.output
