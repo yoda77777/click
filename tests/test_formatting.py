@@ -614,3 +614,30 @@ def test_command_write_usage_no_args(runner, command_kwargs, expected_usage_line
     cli = click.Command("cli", **command_kwargs)
     result = runner.invoke(cli, ["--help"])
     assert result.output.splitlines()[0] == expected_usage_line
+
+
+def test_write_usage_does_not_break_on_hyphens():
+    """Usage lines must not split option names at hyphens.
+
+    Regression for https://github.com/pallets/click/issues/3362
+    """
+    options = [
+        "--enable-verbose-logging",
+        "--output-file-path",
+        "--max-retry-count",
+        "--disable-cache-mode",
+        "--config-file-location",
+        "--user-auth-token",
+        "--auto-update-interval",
+        "--force-overwrite-existing",
+        "--network-timeout-seconds",
+        "--debug-trace-enabled",
+    ]
+    f = click.HelpFormatter(width=65)
+    f.write_usage("program", " ".join(options))
+    out = f.getvalue()
+    # No line should end with a dangling hyphen from a broken option token.
+    for line in out.splitlines():
+        assert not line.rstrip().endswith("-"), line
+    assert "--max-retry-count" in out
+    assert "--config-file-location" in out
