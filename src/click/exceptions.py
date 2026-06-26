@@ -58,8 +58,14 @@ class ClickException(Exception):
         if file is None:
             file = get_text_stderr()
 
+        message = self.format_message()
+        # Python 3.11+ exception notes provide additional context.
+        notes = getattr(self, "__notes__", None)
+        if notes:
+            message = "\n".join((message, *notes))
+
         echo(
-            _("Error: {message}").format(message=self.format_message()),
+            _("Error: {message}").format(message=message),
             file=file,
             color=self.show_color,
         )
